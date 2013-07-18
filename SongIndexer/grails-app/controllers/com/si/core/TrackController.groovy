@@ -23,6 +23,7 @@ class TrackController {
 			trackResults.addAll(Track.findAllByTitleIlike("%${parameter}%"))
 			trackResults.addAll(Track.findAllByArtistIlike("%${parameter}%"))
 			trackResults.addAll(Track.findAllByAlbumIlike("%${parameter}%"))
+			trackResults.addAll(Track.findAllByLinkIlike("%${parameter}%"))
 		}else{
 			trackResults = Track.list()
 		}
@@ -176,5 +177,4 @@ class TrackController {
 	def length = {
 		render params.string.size()	
     }
-	
 }

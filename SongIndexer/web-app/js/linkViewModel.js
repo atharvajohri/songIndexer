@@ -1,4 +1,4 @@
-var xhrTimeout;
+var xhrTimeout, apChangeCount=0;
 
 function LinkVM(){
 	
@@ -12,6 +12,7 @@ function LinkVM(){
 	self.var4 = ko.observable("300/");
 	self.var5 = ko.observable("hdceeU");
 	self.songType = ko.observable(".48k.v3.m4a");
+	self.maxApChangeCount = ko.observable(20);
 	
 	self.generatedLink = ko.computed(function(){
 		return (self.protocol() + self.subDomain() + self.domain() + self.var1() + self.var2() + self.var3() + self.var4() + self.var5() + self.songType())
@@ -19,10 +20,36 @@ function LinkVM(){
 	
 	self.generateLink = function(){
 		//var1 is found to be constant
-		self.var2(nextNumber(self.var2()));
-		self.var3(nextNumber(self.var3()));
-		self.var4(nextNumber(self.var4()));
-		self.var5(nextAlphaNumeric(self.var5()));//random alphanumeric
+		if (apChangeCount < self.maxApChangeCount()){
+			apChangeCount++;
+			self.var5(nextAlphaNumeric(self.var5()));//random alphanumeric
+		}else{
+			apChangeCount = 0;
+			var temp = self.var2();
+			var nextVar = nextNumber(self.var2());
+			if (temp == nextVar){
+				temp = self.var3();
+				nextVar = nextNumber(self.var3());
+				if (temp == nextVar){
+					temp = self.var4();
+					nextVar = nextNumber(self.var4());
+					if (temp == nextVar){
+						//end case!
+					}else{
+						self.var4(nextVar);
+					}
+				}else{
+					self.var3(nextVar);
+				}	
+			}else{
+				self.var2(nextVar);
+			}
+			
+//			self.var2(nextNumber(self.var2()));
+//			self.var3(nextNumber(self.var3()));
+//			self.var4(nextNumber(self.var4()));
+		}
+		
 	}
 	
 	self.stopXhrLog = function(){
@@ -45,17 +72,20 @@ function LinkVM(){
 
 function nextNumber(curValue, random){
 	if (!curValue)
-		curValue = "000/"
+		curValue = "000/";
 	curValue = curValue.replace("/","");
 	
 	try {
-		curValue = parseInt(curValue)
+		curValue = parseInt(curValue);
 	}catch (err){
-		curValue = 0
+		curValue = 0;
 	}
 	
 	if (curValue < 999){
-		curValue++;
+		if (!random)
+			curValue++;
+		//else
+			//add generate random logic
 	}else{
 		curValue = 0;
 	}
@@ -79,6 +109,7 @@ function checkSong(self, tryNext){
 			console.log("Request was success!");
 			console.log(data);
 			//woohooo!
+			foundSong(self, true, tryNext);
 			
 		},
 		error: function(e){
@@ -93,11 +124,11 @@ function checkSong(self, tryNext){
 	});
 	
 	setTimeout(function(){
-		//if after 1.5 seconds, xhr is not null then it is success!
+		//if after 2 seconds, xhr is not null, it means song is streaming. it is success!
 		if (xhr){
 			xhr.abort();
 		}
-	}, 1500);
+	}, 2000);
 }
 
 function foundSong(self, found, tryNext){
